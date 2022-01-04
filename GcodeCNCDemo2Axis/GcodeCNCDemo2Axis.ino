@@ -1,3 +1,5 @@
+
+
 //------------------------------------------------------------------------------
 // 2 Axis CNC Demo
 // dan@marginallycelver.com 2013-08-30
@@ -20,7 +22,7 @@ float fr =     0;  // human version
 long  step_delay;  // machine version
 
 // settings
-char mode_abs=1;   // absolute mode?
+char mode_abs = 1; // absolute mode?
 
 
 //------------------------------------------------------------------------------
@@ -29,23 +31,23 @@ char mode_abs=1;   // absolute mode?
 
 
 /**
- * delay for the appropriate number of microseconds
- * @input ms how many milliseconds to wait
- */
+   delay for the appropriate number of microseconds
+   @input ms how many milliseconds to wait
+*/
 void pause(long ms) {
-  delay(ms/1000);
-  delayMicroseconds(ms%1000);  // delayMicroseconds doesn't work for values > ~16k.
+  delay(ms / 1000);
+  delayMicroseconds(ms % 1000); // delayMicroseconds doesn't work for values > ~16k.
 }
 
 
 /**
- * Set the feedrate (speed motors will move)
- * @input nfr the new speed in steps/second
- */
+   Set the feedrate (speed motors will move)
+   @input nfr the new speed in steps/second
+*/
 void feedrate(float nfr) {
-  if(fr==nfr) return;  // same as last time?  quit now.
+  if (fr == nfr) return; // same as last time?  quit now.
 
-  if(nfr>MAX_FEEDRATE || nfr<MIN_FEEDRATE) {  // don't allow crazy feed rates
+  if (nfr > MAX_FEEDRATE || nfr < MIN_FEEDRATE) { // don't allow crazy feed rates
     Serial.print(F("New feedrate must be greater than "));
     Serial.print(MIN_FEEDRATE);
     Serial.print(F("steps/s and less than "));
@@ -53,56 +55,56 @@ void feedrate(float nfr) {
     Serial.println(F("steps/s."));
     return;
   }
-  step_delay = 1000000.0/nfr;
+  step_delay = 1000000.0 / nfr;
   fr = nfr;
 }
 
 
 /**
- * Set the logical position
- * @input npx new position x
- * @input npy new position y
- */
-void position(float npx,float npy) {
+   Set the logical position
+   @input npx new position x
+   @input npy new position y
+*/
+void position(float npx, float npy) {
   // here is a good place to add sanity tests
-  px=npx;
-  py=npy;
+  px = npx;
+  py = npy;
 }
 
 
 /**
- * Uses bresenham's line algorithm to move both motors
- * @input newx the destination x position
- * @input newy the destination y position
+   Uses bresenham's line algorithm to move both motors
+   @input newx the destination x position
+   @input newy the destination y position
  **/
-void line(float newx,float newy) {
+void line(float newx, float newy) {
   long i;
-  long over= 0;
-  
-  long dx  = newx-px;
-  long dy  = newy-py;
-  int dirx = dx>0?1:-1;
-  int diry = dy>0?-1:1;  // because the motors are mounted in opposite directions
+  long over = 0;
+
+  long dx  = newx - px;
+  long dy  = newy - py;
+  int dirx = dx > 0 ? 1 : -1;
+  int diry = dy > 0 ? -1 : 1; // because the motors are mounted in opposite directions
   dx = abs(dx);
   dy = abs(dy);
 
-  if(dx>dy) {
-    over = dx/2;
-    for(i=0; i<dx; ++i) {
+  if (dx > dy) {
+    over = dx / 2;
+    for (i = 0; i < dx; ++i) {
       m1step(dirx);
       over += dy;
-      if(over>=dx) {
+      if (over >= dx) {
         over -= dx;
         m2step(diry);
       }
       pause(step_delay);
     }
   } else {
-    over = dy/2;
-    for(i=0; i<dy; ++i) {
+    over = dy / 2;
+    for (i = 0; i < dy; ++i) {
       m2step(diry);
       over += dx;
-      if(over >= dy) {
+      if (over >= dy) {
         over -= dy;
         m1step(dirx);
       }
@@ -116,9 +118,9 @@ void line(float newx,float newy) {
 
 
 // returns angle of dy/dx as a value from 0...2PI
-float atan3(float dy,float dx) {
-  float a = atan2(dy,dx);
-  if(a<0) a = (PI*2.0)+a;
+float atan3(float dy, float dx) {
+  float a = atan2(dy, dx);
+  if (a < 0) a = (PI * 2.0) + a;
   return a;
 }
 
@@ -129,90 +131,90 @@ float atan3(float dy,float dx) {
 // cx/cy - center of circle
 // x/y - end position
 // dir - ARC_CW or ARC_CCW to control direction of arc
-void arc(float cx,float cy,float x,float y,float dir) {
+void arc(float cx, float cy, float x, float y, float dir) {
   // get radius
   float dx = px - cx;
   float dy = py - cy;
-  float radius=sqrt(dx*dx+dy*dy);
+  float radius = sqrt(dx * dx + dy * dy);
 
   // find angle of arc (sweep)
-  float angle1=atan3(dy,dx);
-  float angle2=atan3(y-cy,x-cx);
-  float theta=angle2-angle1;
-  
-  if(dir>0 && theta<0) angle2+=2*PI;
-  else if(dir<0 && theta>0) angle1+=2*PI;
-  
-  theta=angle2-angle1;
-  
+  float angle1 = atan3(dy, dx);
+  float angle2 = atan3(y - cy, x - cx);
+  float theta = angle2 - angle1;
+
+  if (dir > 0 && theta < 0) angle2 += 2 * PI;
+  else if (dir < 0 && theta > 0) angle1 += 2 * PI;
+
+  theta = angle2 - angle1;
+
   // get length of arc
   // float circ=PI*2.0*radius;
   // float len=theta*circ/(PI*2.0);
   // simplifies to
   float len = abs(theta) * radius;
 
-  int i, segments = ceil( len * MM_PER_SEGMENT );
- 
+  int i, segments = ceil( len / MM_PER_SEGMENT );
+
   float nx, ny, angle3, scale;
 
-  for(i=0;i<segments;++i) {
+  for (i = 0; i < segments; ++i) {
     // interpolate around the arc
-    scale = ((float)i)/((float)segments);
-    
+    scale = ((float)i) / ((float)segments);
+
     angle3 = ( theta * scale ) + angle1;
     nx = cx + cos(angle3) * radius;
     ny = cy + sin(angle3) * radius;
     // send it to the planner
-    line(nx,ny);
+    line(nx, ny);
   }
-  
-  line(x,y);
+
+  line(x, y);
 }
 
 
 /**
- * Look for character /code/ in the buffer and read the float that immediately follows it.
- * @return the value found.  If nothing is found, /val/ is returned.
- * @input code the character to look for.
- * @input val the return value if /code/ is not found.
+   Look for character /code/ in the buffer and read the float that immediately follows it.
+   @return the value found.  If nothing is found, /val/ is returned.
+   @input code the character to look for.
+   @input val the return value if /code/ is not found.
  **/
-float parseNumber(char code,float val) {
-  char *ptr=serialBuffer;  // start at the beginning of buffer
-  while((long)ptr > 1 && (*ptr) && (long)ptr < (long)serialBuffer+sofar) {  // walk to the end
-    if(*ptr==code) {  // if you find code on your walk,
-      return atof(ptr+1);  // convert the digits that follow into a float and return it
+float parseNumber(char code, float val) {
+  char *ptr = buffer; // start at the beginning of buffer
+  while ((long)ptr > 1 && (*ptr) && (long)ptr < (long)buffer + sofar) { // walk to the end
+    if (*ptr == code) { // if you find code on your walk,
+      return atof(ptr + 1); // convert the digits that follow into a float and return it
     }
-    ptr=strchr(ptr,' ')+1;  // take a step from here to the letter after the next space
+    ptr = strchr(ptr, ' ') + 1; // take a step from here to the letter after the next space
   }
   return val;  // end reached, nothing found, return default val.
 }
 
 
 /**
- * write a string followed by a float to the serial line.  Convenient for debugging.
- * @input code the string.
- * @input val the float.
- */
-void output(const char *code,float val) {
+   write a string followed by a float to the serial line.  Convenient for debugging.
+   @input code the string.
+   @input val the float.
+*/
+void output(const char *code, float val) {
   Serial.print(code);
   Serial.println(val);
 }
 
 
 /**
- * print the current position, feedrate, and absolute mode.
- */
+   print the current position, feedrate, and absolute mode.
+*/
 void where() {
-  output("X",px);
-  output("Y",py);
-  output("F",fr);
-  Serial.println(mode_abs?"ABS":"REL");
-} 
+  output("X", px);
+  output("Y", py);
+  output("F", fr);
+  Serial.println(mode_abs ? "ABS" : "REL");
+}
 
 
 /**
- * display helpful information
- */
+   display helpful information
+*/
 void help() {
   Serial.print(F("GcodeCNCDemo2AxisV1 "));
   Serial.println(VERSION);
@@ -233,68 +235,68 @@ void help() {
 
 
 /**
- * Read the input buffer and find any recognized commands.  One G or M command per line.
- */
+   Read the input buffer and find any recognized commands.  One G or M command per line.
+*/
 void processCommand() {
-  int cmd = parsenumber('G',-1);
-  switch(cmd) {
-  case  0:
-  case  1: { // line
-    feedrate(parsenumber('F',fr));
-    line( parsenumber('X',(mode_abs?px:0)) + (mode_abs?0:px),
-          parsenumber('Y',(mode_abs?py:0)) + (mode_abs?0:py) );
-    break;
-    }
-  case 2:
-  case 3: {  // arc
-      feedrate(parsenumber('F',fr));
-      arc(parsenumber('I',(mode_abs?px:0)) + (mode_abs?0:px),
-          parsenumber('J',(mode_abs?py:0)) + (mode_abs?0:py),
-          parsenumber('X',(mode_abs?px:0)) + (mode_abs?0:px),
-          parsenumber('Y',(mode_abs?py:0)) + (mode_abs?0:py),
-          (cmd==2) ? -1 : 1);
+  int cmd = parseNumber('G', -1);
+  switch (cmd) {
+    case  0:
+    case  1: { // line
+        feedrate(parseNumber('F', fr));
+        line( parseNumber('X', (mode_abs ? px : 0)) + (mode_abs ? 0 : px),
+              parseNumber('Y', (mode_abs ? py : 0)) + (mode_abs ? 0 : py) );
+        break;
+      }
+    case 2:
+    case 3: {  // arc
+        feedrate(parseNumber('F', fr));
+        arc(parseNumber('I', (mode_abs ? px : 0)) + (mode_abs ? 0 : px),
+            parseNumber('J', (mode_abs ? py : 0)) + (mode_abs ? 0 : py),
+            parseNumber('X', (mode_abs ? px : 0)) + (mode_abs ? 0 : px),
+            parseNumber('Y', (mode_abs ? py : 0)) + (mode_abs ? 0 : py),
+            (cmd == 2) ? -1 : 1);
+        break;
+      }
+    case  4:  pause(parseNumber('P', 0) * 1000);  break; // dwell
+    case 90:  mode_abs = 1;  break; // absolute mode
+    case 91:  mode_abs = 0;  break; // relative mode
+    case 92:  // set logical position
+      position( parseNumber('X', 0),
+                parseNumber('Y', 0) );
       break;
-    }
-  case  4:  pause(parsenumber('P',0)*1000);  break;  // dwell
-  case 90:  mode_abs=1;  break;  // absolute mode
-  case 91:  mode_abs=0;  break;  // relative mode
-  case 92:  // set logical position
-    position( parsenumber('X',0),
-              parsenumber('Y',0) );
-    break;
-  default:  break;
+    default:  break;
   }
 
-  cmd = parsenumber('M',-1);
-  switch(cmd) {
-  case 18:  // disable motors
-    disable();
-    break;
-  case 100:  help();  break;
-  case 114:  where();  break;
-  default:  break;
+  cmd = parseNumber('M', -1);
+  switch (cmd) {
+    case 18:  // disable motors
+      disable();
+      break;
+    case 100:  help();  break;
+    case 114:  where();  break;
+    default:  break;
   }
 }
 
 
 /**
- * prepares the input buffer to receive a new message and tells the serial connected device it is ready for more.
- */
+   prepares the input buffer to receive a new message and tells the serial connected device it is ready for more.
+*/
 void ready() {
-  sofar=0;  // clear input buffer
+  sofar = 0; // clear input buffer
   Serial.print(F(">"));  // signal ready to receive input
 }
 
 
 /**
- * First thing this machine does on startup.  Runs only once.
- */
+   First thing this machine does on startup.  Runs only once.
+*/
 void setup() {
   Serial.begin(BAUD);  // open coms
 
-  setup_controller();  
-  position(0,0);  // set staring position
-  feedrate((MAX_FEEDRATE + MIN_FEEDRATE)/2);  // set default speed
+  setup_controller();
+  position(0, 0); // set staring position
+  feedrate((MAX_FEEDRATE + MIN_FEEDRATE) / 2); // set default speed
 
   help();  // say hello
   ready();
@@ -302,17 +304,17 @@ void setup() {
 
 
 /**
- * After setup() this machine will repeat loop() forever.
- */
+   After setup() this machine will repeat loop() forever.
+*/
 void loop() {
   // listen for serial commands
-  while(Serial.available() > 0) {  // if something is available
-    char c=Serial.read();  // get it
+  while (Serial.available() > 0) { // if something is available
+    char c = Serial.read(); // get it
     Serial.print(c);  // repeat it back so I know you got the message
-    if(sofar<MAX_BUF-1) buffer[sofar++]=c;  // store it
-    if((c=='\n') || (c == '\r')) {
+    if (sofar < MAX_BUF - 1) buffer[sofar++] = c; // store it
+    if ((c == '\n') || (c == '\r')) {
       // entire message received
-      buffer[sofar]=0;  // end the buffer so string functions work right
+      buffer[sofar] = 0; // end the buffer so string functions work right
       Serial.print(F("\r\n"));  // echo a return character for humans
       processCommand();  // do something with the command
       ready();
@@ -322,18 +324,18 @@ void loop() {
 
 
 /**
-* This file is part of GcodeCNCDemo.
-*
-* GcodeCNCDemo is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* GcodeCNCDemo is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+  This file is part of GcodeCNCDemo.
+
+  GcodeCNCDemo is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  GcodeCNCDemo is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Foobar. If not, see <http://www.gnu.org/licenses/>.
 */
