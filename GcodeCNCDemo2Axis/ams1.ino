@@ -10,15 +10,16 @@
 //------------------------------------------------------------------------------
 // INCLUDES
 //------------------------------------------------------------------------------
-#include <AFMotorDrawbot.h>
-
+//#include <Adafruit_MotorShield.h>
+#include <AFMotor.h>
 
 //------------------------------------------------------------------------------
 // GLOBALS
 //------------------------------------------------------------------------------
 // Initialize Adafruit stepper controller
-AF_Stepper m1((int)STEPS_PER_TURN, 1);
-AF_Stepper m2((int)STEPS_PER_TURN, 2);
+AF_Stepper m1((uint16_t)STEPS_PER_TURN, 1);
+AF_Stepper m2((uint16_t)STEPS_PER_TURN, 2);
+
 
 
 //------------------------------------------------------------------------------
@@ -26,11 +27,11 @@ AF_Stepper m2((int)STEPS_PER_TURN, 2);
 //------------------------------------------------------------------------------
 
 void m1step(int dir) {
-  m1.onestep(dir);
+  m1.onestep(dir, INTERLEAVE);
 }
 
 void m2step(int dir) {
-  m2.onestep(dir);
+  m2.onestep(dir, INTERLEAVE);
 }
 
 void disable() {
