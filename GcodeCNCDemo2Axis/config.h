@@ -13,8 +13,6 @@
 //------------------------------------------------------------------------------
 // supported control boards
 #define AMS1 (1)
-#define AMS2 (2)
-#define HG7881 (3) // HG7881 Stepper Driver
 
 // change this line to select a different control board for your CNC.
 #define CONTROLLER AMS1
@@ -23,8 +21,8 @@
 #define VERSION        (1)  // firmware version
 #define BAUD           (57600)  // How fast is the Arduino talking?
 #define MAX_BUF        (64)  // What is the longest message Arduino can store?
-#define STEPS_PER_TURN (400)  // depends on your stepper motor.  most are 200.
-#define MIN_STEP_DELAY (50.0)
+#define STEPS_PER_TURN (4096)  // depends on your stepper motor.  most are 200.
+#define MIN_STEP_DELAY (800.0)
 #define MAX_FEEDRATE   (1000000.0/MIN_STEP_DELAY)
 #define MIN_FEEDRATE   (0.01)
 
@@ -33,8 +31,7 @@
 #define ARC_CW          (1)
 #define ARC_CCW         (-1)
 // Arcs are split into many line segments.  How long are the segments?
-#define MM_PER_SEGMENT  (10)
-
+#define MM_PER_SEGMENT  (4)
 
 //------------------------------------------------------------------------------
 // METHODS
